@@ -68,13 +68,13 @@ class MockService: MyServiceType {
 Here's are the registrations that resolve the various keypaths. 
 ```swift
 extension Injections {
-    var contentViewModel: ContentViewModel { ContentViewModel() }
+    var contentViewModel: ContentViewModel { shared( ContentViewModel() ) }
     var myServiceType: MyServiceType { shared( MyService() ) }
 }
 ```
 For each one we extend `Injections` to add a factory closure that will be called to provide a new instance of the viewmodel or service when needed.
 
-Note that `myServiceType` is using a shared scope here.
+Note that we're using shared scopes here in order to ensure persistance across view updates in SwiftUI.
 
 ## Mocking and Testing
 
