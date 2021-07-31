@@ -9,20 +9,25 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @Injectable(\.contentViewModel) var viewModel: ContentViewModel
+    @InjectableObject(\.contentViewModel) var viewModel: ContentViewModel
     
     var body: some View {
         VStack(spacing: 16) {
             Text("\(viewModel.id)")
                 .font(.footnote)
             
+            Text("\(viewModel.count)")
+            
+            Button("Increment") {
+                viewModel.bump()
+            }
+            
             NavigationLink("Next", destination: ContentView())
         }
-        .onAppear(perform: {
+        .onAppear {
             viewModel.test()
-        })
+        }
     }
-    
 }
 
 struct ContentView_Previews: PreviewProvider {

@@ -127,7 +127,7 @@ class InjectableApplicationScope: InjectableScope {
         return service
     }
     fileprivate var cache = [Int:Any]()
-    fileprivate var lock = NSLock()
+    fileprivate var lock = NSRecursiveLock()
 }
 
 class InjectableCacheScope: InjectableApplicationScope {
@@ -159,5 +159,5 @@ class InjectableSharedScope: InjectableScope {
         cache = [:]
     }
     private var cache = [Int:WeakBox]()
-    private var lock = NSLock()
+    private var lock = NSRecursiveLock()
 }

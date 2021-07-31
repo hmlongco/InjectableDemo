@@ -7,21 +7,26 @@
 
 import Foundation
 
-class ContentViewModel {
+class ContentViewModel: ObservableObject {
     
     @Injectable(\.myServiceType) var service: MyServiceType
+    
+    @Published var count = 0
     
     var id: String {
         service.service()
     }
     
-    func test() {
-        print(service.service())
+    func bump() {
+        count += 1
     }
     
+    func test() {
+        print(service.service() + "\(count)")
+    }
 }
 
 
 extension Injections {
-    var contentViewModel: ContentViewModel { ContentViewModel() }
+    var contentViewModel: ContentViewModel { shared( ContentViewModel() ) }
 }
