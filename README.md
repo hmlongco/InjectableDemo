@@ -5,11 +5,12 @@ Preliminary musings and demonstration code for a simple Swift property-wrapper, 
 Injectable also supports overriding services for mocking and testing purposes, as well as a rudimentary thread-safe scoping system that enables unique, shared, cached, and application-level scopes for services.
 
 ## Demo Code
+Here's a SwiftUI view that uses an injectable view model.
 
 ```swift
 struct ContentView: View {
     
-    @Injectable(\.contentViewModel) var viewModel: ContentViewModel
+    @InjectableObject(\.contentViewModel) var viewModel: ContentViewModel
     
     var body: some View {
         VStack(spacing: 16) {
@@ -116,7 +117,7 @@ As the initializer requires the keypath, it *must* exist. Thus all registrations
 
 Overrides to the keypaths are exceptions to the rule, and are treated as such.
 
-All of the code, including the code for the scopes, requires about 160 lines of code. That includes an addtional property wrapper, `@InjectableObject`, which can be used in SwiftUI code like an `ObservableObject`.
+All of the code, including the code for the scopes, requires about 160 lines of code. That also includes an addtional property wrapper, `@InjectableObject`, which can be used in SwiftUI code like an `ObservableObject`. 
 
 ## The Idea
 
