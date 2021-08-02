@@ -1,4 +1,4 @@
-# InjectableDemo
+# Injectable Demo
 
 Preliminary musings and demonstration code for a simple Swift property-wrapper, keypath-based dependency injection system. The keypaths ensure compile-time safety for all injectable services.
 
