@@ -10,7 +10,7 @@ Here's a SwiftUI view that uses an injectable view model.
 ```swift
 struct ContentView: View {
     
-    @InjectableObject(\.contentViewModel) var viewModel: ContentViewModel
+    @InjectableObject(\.contentViewModel) var viewModel
     
     var body: some View {
         VStack(spacing: 16) {
@@ -29,7 +29,7 @@ And here's the code for the view model which in turn has its own injectable serv
 ```Swift
 class ContentViewModel {
     
-    @Injectable(\.myServiceType) var service: MyServiceType
+    @Injectable(\.myServiceType) var service
     
     var id: String {
         service.service()

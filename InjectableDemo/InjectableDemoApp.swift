@@ -5,7 +5,7 @@
 //  Created by Michael Long on 7/31/21.
 //
 
-import SwiftUI
+import Foundation
 
 @main
 struct InjectableDemoApp: App {

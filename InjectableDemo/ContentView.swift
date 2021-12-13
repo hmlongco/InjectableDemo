@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @InjectableObject(\.contentViewModel) var viewModel: ContentViewModel
+    @InjectableObject(\.contentViewModel) var viewModel
     
     var body: some View {
         VStack(spacing: 16) {
@@ -28,6 +28,7 @@ struct ContentView: View {
             viewModel.test()
         }
     }
+
 }
 
 struct ContentView_Previews: PreviewProvider {

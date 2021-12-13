@@ -11,7 +11,7 @@ import SwiftUI
 // add simple injectable type
 
 public protocol InjectableType {
-    static func resolve() -> Self
+    static func resolve(_ args: Any?) -> Self
 }
 
 // Injectable property wrapper
@@ -21,11 +21,11 @@ public protocol InjectableType {
     private var service: Service
     
     public init() where Service: InjectableType {
-        self.service = Injections.container.resolve() ?? Service.resolve()
+        self.service = Injections.container.resolve()
     }
     
     public init(_ keyPath: KeyPath<Injections, Service>) {
-        self.service = Injections.container.resolve() ?? Injections.container[keyPath: keyPath]
+        self.service = Injections.container.resolve(keyPath)
     }
     
     public var wrappedValue: Service {
@@ -40,6 +40,33 @@ public protocol InjectableType {
     
 }
 
+@propertyWrapper public struct LazyInjectable<Service:InjectableType> {
+    
+    var args: Any?
+    
+    private var service: Service!
+    
+    public init() {
+        // lazy, does nothing
+    }
+    
+    public var wrappedValue: Service {
+        mutating get {
+            if service == nil {
+                self.service = Injections.container.resolve(args)
+            }
+            return service
+        }
+        mutating set { service = newValue }
+    }
+    
+    public var projectedValue: LazyInjectable<Service> {
+        get { return self }
+        mutating set { self = newValue }
+    }
+    
+}
+
 // additional wrapper for SwfitUI that allows for observable objects
 
 @propertyWrapper public struct InjectableObject<Service>: DynamicProperty where Service: ObservableObject {
@@ -47,11 +74,11 @@ public protocol InjectableType {
     @ObservedObject private var service: Service
     
     public init() where Service: InjectableType {
-        self.service = Injections.container.resolve() ?? Service.resolve()
+        self.service = Injections.container.resolve()
     }
     
     public init(_ keyPath: KeyPath<Injections, Service>) {
-        self.service = Injections.container.resolve() ?? Injections.container[keyPath: keyPath]
+        self.service = Injections.container.resolve(keyPath)
     }
 
     public var wrappedValue: Service {
@@ -65,33 +92,65 @@ public protocol InjectableType {
     
 }
 
-
 // add core container class for factories with registration and resolution mechanisms for overrides
 
 public class Injections {
     
     static let container = Injections()
     
+    
     func register<Service>(factory: @escaping () -> Service) {
-        let id = ObjectIdentifier(Service.self).hashValue
+        defer { lock.unlock() }
+        lock.lock()
+        let id = Int(bitPattern: ObjectIdentifier(Service.self))
         registrations[id] = factory
     }
-        
-    func resolve<Service>() -> Service? {
-        let id = ObjectIdentifier(Service.self).hashValue
-        if let service = registrations[id]?() as? Service {
-            return service
-        }
-        return nil
+    
+    func register<Service>(factory: @escaping (_ arg: Any) -> Service) {
+        defer { lock.unlock() }
+        lock.lock()
+        let id = Int(bitPattern: ObjectIdentifier(Service.self))
+        registrationsArgs[id] = factory
+    }
+    
+    
+    func resolve<Service>() -> Service where Service: InjectableType {
+        return Injections.container.registered() ?? Service.resolve(nil)
+    }
+
+    func resolve<Service>(_ args: Any?) -> Service where Service: InjectableType {
+        return Injections.container.registered(args) ?? Service.resolve(args)
+    }
+
+    func resolve<Service>(_ keyPath: KeyPath<Injections, Service>) -> Service {
+        return registered() ?? Self.container[keyPath: keyPath]
+    }
+    
+    
+    func registered<Service>() -> Service? {
+        defer { lock.unlock() }
+        lock.lock()
+        let id = Int(bitPattern: ObjectIdentifier(Service.self))
+        return registrations[id]?() as? Service
+    }
+    
+    func registered<Service>(_ args: Any?) -> Service? {
+        defer { lock.unlock() }
+        lock.lock()
+        let id = Int(bitPattern: ObjectIdentifier(Service.self))
+        return registrationsArgs[id]?(args) as? Service
     }
     
     func reset() {
         registrations = [:]
+        registrationsArgs = [:]
     }
 
     private init() {}
     private var registrations: [Int:() -> Any] = [:]
-    
+    private var registrationsArgs: [Int:(_ arg: Any?) -> Any] = [:]
+    private var lock = NSRecursiveLock()
+
 }
 
 // add basic scoping mechanisms
@@ -118,7 +177,7 @@ class InjectableApplicationScope: InjectableScope {
     func callAsFunction<S>(_ factory: @autoclosure () -> S) -> S {
         defer { lock.unlock() }
         lock.lock()
-        let id = ObjectIdentifier(S.self).hashValue
+        let id = Int(bitPattern: ObjectIdentifier(S.self))
         if let service = cache[id] as? S {
             return service
         }
@@ -145,7 +204,7 @@ class InjectableSharedScope: InjectableScope {
     func callAsFunction<S>(_ factory: @autoclosure () -> S) -> S {
         defer { lock.unlock() }
         lock.lock()
-        let id = ObjectIdentifier(S.self).hashValue
+        let id = Int(bitPattern: ObjectIdentifier(S.self))
         if let service = cache[id]?.service as? S {
             return service
         }
