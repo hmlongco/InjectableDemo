@@ -5,13 +5,13 @@
 //  Created by Michael Long on 7/31/21.
 //
 
-import Foundation
+import SwiftUI
 
 @main
 struct InjectableDemoApp: App {
-    init() {
-        //Injections.registerMockServices()
-    }
+//    init() {
+//        //Injections.registerMockServices()
+//    }
     var body: some Scene {
         WindowGroup {
             NavigationView {
