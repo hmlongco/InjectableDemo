@@ -8,19 +8,25 @@
 import Foundation
 
 protocol MyServiceType  {
+    var id: UUID { get }
     func service() -> String
 }
 
 class MyService: MyServiceType {
-    @Injectable var myInjectableType: MyInjectableType
-    private let id = UUID()
+    let id = UUID()
+    init() {
+        print("init MyService \(id)")
+    }
+    deinit {
+        print("deinit MyService \(id)")
+    }
     func service() -> String {
         "Service \(id)"
     }
 }
 
 class MockService: MyServiceType {
-    private let id = UUID()
+    let id = UUID()
     func service() -> String {
         "Mock \(id)"
     }
@@ -29,21 +35,15 @@ class MockService: MyServiceType {
 // service with constructor injection
 
 class ConstructedService {
-    init(_ myServiceType: MyServiceType) {
-        // demo
+    let id = UUID()
+    let service: MyServiceType
+    init(_ service: MyServiceType) {
+        self.service = service
+        print("init ConstructedService \(id)")
+        print("init ConstructedService using \(service.id)")
     }
-}
-
-// testing injectable type
-
-final class MyInjectableType {
-    init() {
-        print("init MyInjectableType")
-    }
-}
-
-extension MyInjectableType: InjectableType {
-    static func resolve(_ args: Any?) -> MyInjectableType {
-        MyInjectableType()
+    deinit {
+        print("deinit ConstructedService \(id)")
+        print("deinit ConstructedService using \(service.id)")
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C0F3B202782381C00AC87EF /* InjectableType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C0F3B1F2782381C00AC87EF /* InjectableType.swift */; };
 		4C3BF5462767F22000E9EA68 /* InjectableDemoApp+Injections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3BF5452767F22000E9EA68 /* InjectableDemoApp+Injections.swift */; };
 		4CEA348926B5E7A400174C3D /* InjectableDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CEA348826B5E7A400174C3D /* InjectableDemoApp.swift */; };
 		4CEA348B26B5E7A400174C3D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CEA348A26B5E7A400174C3D /* ContentView.swift */; };
@@ -29,6 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4C0F3B1F2782381C00AC87EF /* InjectableType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjectableType.swift; sourceTree = "<group>"; };
 		4C3BF5452767F22000E9EA68 /* InjectableDemoApp+Injections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InjectableDemoApp+Injections.swift"; sourceTree = "<group>"; };
 		4CEA348526B5E7A400174C3D /* InjectableDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InjectableDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CEA348826B5E7A400174C3D /* InjectableDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InjectableDemoApp.swift; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				4CEA34B326B5E7CB00174C3D /* Injectable.swift */,
+				4C0F3B1F2782381C00AC87EF /* InjectableType.swift */,
 				4CEA348826B5E7A400174C3D /* InjectableDemoApp.swift */,
 				4C3BF5452767F22000E9EA68 /* InjectableDemoApp+Injections.swift */,
 				4CEA348A26B5E7A400174C3D /* ContentView.swift */,
@@ -216,6 +219,7 @@
 				4CEA34BA26B5EB9000174C3D /* MyService.swift in Sources */,
 				4CEA348B26B5E7A400174C3D /* ContentView.swift in Sources */,
 				4CEA34B426B5E7CB00174C3D /* Injectable.swift in Sources */,
+				4C0F3B202782381C00AC87EF /* InjectableType.swift in Sources */,
 				4CEA348926B5E7A400174C3D /* InjectableDemoApp.swift in Sources */,
 				4C3BF5462767F22000E9EA68 /* InjectableDemoApp+Injections.swift in Sources */,
 			);

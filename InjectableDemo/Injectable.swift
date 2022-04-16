@@ -6,195 +6,149 @@
 //
 
 import Foundation
-import SwiftUI
-
-// add simple injectable type
-
-public protocol InjectableType {
-    static func resolve(_ args: Any?) -> Self
-}
 
 // Injectable property wrapper
 
 @propertyWrapper public struct Injectable<Service> {
-    
     private var service: Service
-    
-    public init() where Service: InjectableType {
-        self.service = Injections.container.resolve()
-    }
-    
     public init(_ keyPath: KeyPath<Injections, Service>) {
         self.service = Injections.container.resolve(keyPath)
     }
-    
     public var wrappedValue: Service {
         get { return service }
         mutating set { service = newValue }
     }
-    
     public var projectedValue: Injectable<Service> {
         get { return self }
         mutating set { self = newValue }
     }
-    
 }
 
-@propertyWrapper public struct LazyInjectable<Service:InjectableType> {
-    
-    var args: Any?
-    
+@propertyWrapper public struct LazyInjectable<Service> {
+    private var keyPath: KeyPath<Injections, Service>?
     private var service: Service!
-    
-    public init() {
-        // lazy, does nothing
+    public init(_ keyPath: KeyPath<Injections, Service>) {
+        self.keyPath = keyPath
     }
-    
     public var wrappedValue: Service {
         mutating get {
-            if service == nil {
-                self.service = Injections.container.resolve(args)
-            }
+            resolve()
             return service
         }
-        mutating set { service = newValue }
+        mutating set {
+            service = newValue
+        }
     }
-    
     public var projectedValue: LazyInjectable<Service> {
-        get { return self }
-        mutating set { self = newValue }
+        mutating get {
+            resolve()
+            return self
+        }
+        mutating set {
+            self = newValue
+        }
     }
-    
-}
-
-// additional wrapper for SwfitUI that allows for observable objects
-
-@propertyWrapper public struct InjectableObject<Service>: DynamicProperty where Service: ObservableObject {
-    
-    @ObservedObject private var service: Service
-    
-    public init() where Service: InjectableType {
-        self.service = Injections.container.resolve()
+    private mutating func resolve() {
+        guard service == nil else {
+            return
+        }
+        if let keyPath = keyPath {
+            self.service = Injections.container.resolve(keyPath)
+        }
     }
-    
-    public init(_ keyPath: KeyPath<Injections, Service>) {
-        self.service = Injections.container.resolve(keyPath)
-    }
-
-    public var wrappedValue: Service {
-        get { return service }
-        mutating set { service = newValue }
-    }
-    
-    public var projectedValue: ObservedObject<Service>.Wrapper {
-        return self.$service
-    }
-    
 }
 
 // add core container class for factories with registration and resolution mechanisms for overrides
 
 public class Injections {
-    
-    static let container = Injections()
-    
-    
-    func register<Service>(factory: @escaping () -> Service) {
+
+    // global injection container
+
+    public static let container = Injections()
+
+    // registration functions
+
+    public func register<Service>(factory: @escaping () -> Service?) {
         defer { lock.unlock() }
         lock.lock()
         let id = Int(bitPattern: ObjectIdentifier(Service.self))
         registrations[id] = factory
     }
-    
-    func register<Service>(factory: @escaping (_ arg: Any) -> Service) {
+
+    // resolution fuctions
+
+    public func resolve<Service>(_ keyPath: KeyPath<Injections, Service>) -> Service {
         defer { lock.unlock() }
         lock.lock()
-        let id = Int(bitPattern: ObjectIdentifier(Service.self))
-        registrationsArgs[id] = factory
-    }
-    
-    
-    func resolve<Service>() -> Service where Service: InjectableType {
-        return Injections.container.registered() ?? Service.resolve(nil)
-    }
-
-    func resolve<Service>(_ args: Any?) -> Service where Service: InjectableType {
-        return Injections.container.registered(args) ?? Service.resolve(args)
-    }
-
-    func resolve<Service>(_ keyPath: KeyPath<Injections, Service>) -> Service {
         return registered() ?? Self.container[keyPath: keyPath]
     }
-    
-    
-    func registered<Service>() -> Service? {
+
+    public func optional<Service>(_ keyPath: KeyPath<Injections, Service>) -> Service? {
         defer { lock.unlock() }
         lock.lock()
+        return registered() ?? Self.container[keyPath: keyPath]
+    }
+
+    // singleton scope where services exist for lifetime of the app
+    public var application: InjectableScope = InjectableCacheScope()
+
+    // cached scope where services exist until scope is reset
+    public var cached: InjectableScope = InjectableCacheScope()
+
+    // shared scope where services are maintained until last reference is released
+    public var shared: InjectableScope = InjectableSharedScope()
+
+    public func reset() {
+        defer { lock.unlock() }
+        lock.lock()
+        registrations = [:]
+    }
+
+    // private
+
+    private func registered<Service>() -> Service? {
         let id = Int(bitPattern: ObjectIdentifier(Service.self))
         return registrations[id]?() as? Service
-    }
-    
-    func registered<Service>(_ args: Any?) -> Service? {
-        defer { lock.unlock() }
-        lock.lock()
-        let id = Int(bitPattern: ObjectIdentifier(Service.self))
-        return registrationsArgs[id]?(args) as? Service
-    }
-    
-    func reset() {
-        registrations = [:]
-        registrationsArgs = [:]
     }
 
     private init() {}
     private var registrations: [Int:() -> Any] = [:]
-    private var registrationsArgs: [Int:(_ arg: Any?) -> Any] = [:]
     private var lock = NSRecursiveLock()
 
 }
 
-// add basic scoping mechanisms
-
-extension Injections {
-    // singleton scope where services exist for lifetime of the app
-    var application: InjectableScope { Self.applicationScope }
-    private static var applicationScope = InjectableApplicationScope()
-    
-    // cached scope where services exist until scope is reset
-    var cached: InjectableScope { Self.cacheScope }
-    private static var cacheScope = InjectableCacheScope()
-    
-    // shared scope where services are maintained until last reference is released
-    var shared: InjectableScope { Self.sharedScope }
-    private static var sharedScope = InjectableSharedScope()
-}
-
-protocol InjectableScope {
+public protocol InjectableScope {
     func callAsFunction<S>(_ factory: @autoclosure () -> S) -> S
+    func release<S>(_ type: S.Type)
+    func reset()
 }
 
-class InjectableApplicationScope: InjectableScope {
+class InjectableCacheScope: InjectableScope {
     func callAsFunction<S>(_ factory: @autoclosure () -> S) -> S {
         defer { lock.unlock() }
         lock.lock()
         let id = Int(bitPattern: ObjectIdentifier(S.self))
         if let service = cache[id] as? S {
+            print("CACHED \(S.self) \(id)")
             return service
         }
         let service = factory()
         cache[id] = service
         return service
     }
-    fileprivate var cache = [Int:Any]()
-    fileprivate var lock = NSRecursiveLock()
-}
-
-class InjectableCacheScope: InjectableApplicationScope {
+    func release<S>(_ type: S.Type) {
+        defer { lock.unlock() }
+        lock.lock()
+        let id = Int(bitPattern: ObjectIdentifier(type))
+        cache.removeValue(forKey: id)
+    }
     func reset() {
         defer { lock.unlock() }
         lock.lock()
         cache = [:]
     }
+    fileprivate var cache = [Int:Any]()
+    fileprivate var lock = NSRecursiveLock()
 }
 
 class InjectableSharedScope: InjectableScope {
@@ -206,11 +160,18 @@ class InjectableSharedScope: InjectableScope {
         lock.lock()
         let id = Int(bitPattern: ObjectIdentifier(S.self))
         if let service = cache[id]?.service as? S {
+            print("SHARED \(S.self) \(id)")
             return service
         }
         let service = factory()
         cache[id] = WeakBox(service: service as AnyObject)
         return service
+    }
+    func release<S>(_ type: S.Type) {
+        defer { lock.unlock() }
+        lock.lock()
+        let id = Int(bitPattern: ObjectIdentifier(type))
+        cache.removeValue(forKey: id)
     }
     func reset() {
         defer { lock.unlock() }

@@ -10,11 +10,7 @@ import Foundation
 // basic injection extensions
 
 extension Injections {
-    var contentViewModel: ContentViewModel { shared( ContentViewModel() ) }
-}
-
-extension Injections {
-    var myServiceType: MyServiceType { shared( MyService() ) }
+    var myServiceType: MyServiceType { shared( MyService() as MyServiceType ) }
     var mockServiceType: MyServiceType { MockService() }
 }
 
@@ -29,7 +25,7 @@ extension Injections {
 // testing registering mocks
 
 extension Injections {
-    static func registerMockServices() {
-        container.register { container.shared( MockService() ) as MyServiceType }
+    func registerMockServices() {
+        register { self.shared( MockService() ) as MyServiceType }
     }
 }
