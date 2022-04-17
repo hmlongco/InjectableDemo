@@ -14,12 +14,12 @@ protocol MyServiceType  {
 
 class MyService: MyServiceType {
     let id = UUID()
-    init() {
-        print("init MyService \(id)")
-    }
-    deinit {
-        print("deinit MyService \(id)")
-    }
+//    init() {
+//        print("init MyService \(id)")
+//    }
+//    deinit {
+//        print("deinit MyService \(id)")
+//    }
     func service() -> String {
         "Service \(id)"
     }

@@ -10,7 +10,7 @@ import Foundation
 // basic injection extensions
 
 extension Injections {
-    var myServiceType: MyServiceType { shared( MyService() as MyServiceType ) }
+    var myService: MyServiceType { shared( MyService() as MyServiceType ) }
     var mockServiceType: MyServiceType { MockService() }
 }
 
@@ -18,7 +18,7 @@ extension Injections {
 
 extension Injections {
     var constructedService: ConstructedService {
-        ConstructedService(resolve(\.myServiceType))
+        ConstructedService(resolve(\.myService))
     }
 }
 
@@ -26,6 +26,6 @@ extension Injections {
 
 extension Injections {
     func registerMockServices() {
-        register { self.shared( MockService() ) as MyServiceType }
+        register { self.shared( MockService() as MyServiceType ) }
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 
 class ContentViewModel: ObservableObject {
     
-    @Injectable(\.myServiceType) var service
+    @Injectable(\.myService) var service
 
     @Published var count = 0
     @Published var string = ""

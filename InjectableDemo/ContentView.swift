@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
+    init() {
+        print("init ContentView")
+    }
     var body: some View {
         NavigationView {
             VStack {
@@ -34,19 +37,19 @@ struct TestView: View {
 }
 
 class TestViewModel: ObservableObject {
-    @Injectable(\.myServiceType) var service
+    @Injectable(\.myService) var service
     let id = UUID()
     init() {
-        print("init vm \(id)")
+        print("init VM \(id)")
     }
     deinit {
-        print("deinit vm \(id)")
+        print("deinit VM \(id)")
     }
 }
 
 
 class TestViewModel2: ObservableObject {
-    @Injectable(\.myServiceType) var service
+    @Injectable(\.myService) var service
     @Injectable(\.constructedService) var constructedService
     let id = UUID()
     init() {

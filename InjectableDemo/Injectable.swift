@@ -129,7 +129,6 @@ class InjectableCacheScope: InjectableScope {
         lock.lock()
         let id = Int(bitPattern: ObjectIdentifier(S.self))
         if let service = cache[id] as? S {
-            print("CACHED \(S.self) \(id)")
             return service
         }
         let service = factory()
@@ -160,7 +159,6 @@ class InjectableSharedScope: InjectableScope {
         lock.lock()
         let id = Int(bitPattern: ObjectIdentifier(S.self))
         if let service = cache[id]?.service as? S {
-            print("SHARED \(S.self) \(id)")
             return service
         }
         let service = factory()
