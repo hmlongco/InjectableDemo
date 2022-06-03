@@ -4,6 +4,10 @@ Preliminary musings and demonstration code for a simple Swift property-wrapper, 
 
 Injectable also supports overriding services for mocking and testing purposes, as well as a rudimentary thread-safe scoping system that enables unique, shared, cached, and application-level scopes for services.
 
+## Note
+
+**Some of the concepts discussed here are now used in my new dependency injection framework, [Factory](https://github.com/hmlongco/Factory).**
+
 ## Demo Code
 Here's a SwiftUI view that uses an injectable view model.
 
